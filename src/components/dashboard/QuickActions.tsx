@@ -1,32 +1,58 @@
-import { Plus, Target, Calendar, FileText, Clock } from "lucide-react";
+import { useState } from "react";
+import { Target, Calendar, FileText, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import NewGoalDialog, { NewGoalData } from "./NewGoalDialog";
+import { toast } from "@/hooks/use-toast";
 
-const QuickActions = () => {
+interface QuickActionsProps {
+  onNewGoal?: (goal: NewGoalData) => void;
+}
+
+const QuickActions = ({ onNewGoal }: QuickActionsProps) => {
+  const [isNewGoalOpen, setIsNewGoalOpen] = useState(false);
+
+  const handleNewGoal = (goal: NewGoalData) => {
+    onNewGoal?.(goal);
+    toast({
+      title: "Goal Created",
+      description: `"${goal.title}" has been added to your goals.`,
+    });
+  };
+
   const actions = [
-    { icon: Target, label: "New Goal", variant: "accent" as const },
-    { icon: Calendar, label: "Schedule Task", variant: "default" as const },
-    { icon: FileText, label: "Add Note", variant: "outline" as const },
-    { icon: Clock, label: "Start Timer", variant: "outline" as const },
+    { icon: Target, label: "New Goal", variant: "accent" as const, onClick: () => setIsNewGoalOpen(true) },
+    { icon: Calendar, label: "Schedule Task", variant: "default" as const, onClick: () => {} },
+    { icon: FileText, label: "Add Note", variant: "outline" as const, onClick: () => {} },
+    { icon: Clock, label: "Start Timer", variant: "outline" as const, onClick: () => {} },
   ];
 
   return (
-    <div className="rounded-xl border border-border bg-card p-6 shadow-card">
-      <h2 className="font-display text-lg font-semibold text-card-foreground mb-4">
-        Quick Actions
-      </h2>
-      <div className="grid grid-cols-2 gap-3">
-        {actions.map((action) => (
-          <Button
-            key={action.label}
-            variant={action.variant}
-            className="h-auto py-4 flex-col gap-2"
-          >
-            <action.icon className="h-5 w-5" />
-            <span className="text-xs">{action.label}</span>
-          </Button>
-        ))}
+    <>
+      <div className="rounded-xl border border-border bg-card p-6 shadow-card">
+        <h2 className="font-display text-lg font-semibold text-card-foreground mb-4">
+          Quick Actions
+        </h2>
+        <div className="grid grid-cols-2 gap-3">
+          {actions.map((action) => (
+            <Button
+              key={action.label}
+              variant={action.variant}
+              className="h-auto py-4 flex-col gap-2"
+              onClick={action.onClick}
+            >
+              <action.icon className="h-5 w-5" />
+              <span className="text-xs">{action.label}</span>
+            </Button>
+          ))}
+        </div>
       </div>
-    </div>
+
+      <NewGoalDialog
+        open={isNewGoalOpen}
+        onOpenChange={setIsNewGoalOpen}
+        onSubmit={handleNewGoal}
+      />
+    </>
   );
 };
 
