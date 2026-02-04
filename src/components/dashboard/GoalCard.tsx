@@ -1,6 +1,13 @@
-import { Calendar, Clock, CheckCircle2, Circle } from "lucide-react";
+import { Calendar, CheckCircle2, Circle, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 
 interface Task {
@@ -10,6 +17,7 @@ interface Task {
 }
 
 interface GoalCardProps {
+  id: string;
   title: string;
   description: string;
   progress: number;
@@ -17,6 +25,8 @@ interface GoalCardProps {
   category: string;
   tasks: Task[];
   priority: "high" | "medium" | "low";
+  onEdit?: (id: string) => void;
+  onDelete?: (id: string) => void;
 }
 
 const priorityStyles = {
@@ -25,7 +35,18 @@ const priorityStyles = {
   low: "bg-muted text-muted-foreground border-border",
 };
 
-const GoalCard = ({ title, description, progress, deadline, category, tasks, priority }: GoalCardProps) => {
+const GoalCard = ({ 
+  id,
+  title, 
+  description, 
+  progress, 
+  deadline, 
+  category, 
+  tasks, 
+  priority,
+  onEdit,
+  onDelete,
+}: GoalCardProps) => {
   const completedTasks = tasks.filter(t => t.completed).length;
 
   return (
@@ -44,6 +65,32 @@ const GoalCard = ({ title, description, progress, deadline, category, tasks, pri
             </div>
             <p className="text-sm text-muted-foreground line-clamp-2">{description}</p>
           </div>
+          
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                <MoreHorizontal className="h-4 w-4" />
+                <span className="sr-only">Goal options</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => onEdit?.(id)}>
+                <Pencil className="mr-2 h-4 w-4" />
+                Edit
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => onDelete?.(id)}
+                className="text-destructive focus:text-destructive"
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         {/* Progress */}

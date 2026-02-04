@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Target, CheckCircle2, Clock, TrendingUp } from "lucide-react";
 import Header from "@/components/layout/Header";
 import StatsCard from "@/components/dashboard/StatsCard";
@@ -5,15 +6,28 @@ import GoalCard from "@/components/dashboard/GoalCard";
 import WeeklySchedule from "@/components/dashboard/WeeklySchedule";
 import QuickActions from "@/components/dashboard/QuickActions";
 import OverallProgress from "@/components/dashboard/OverallProgress";
+import EditGoalDialog, { GoalData } from "@/components/dashboard/EditGoalDialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useToast } from "@/hooks/use-toast";
 
-const sampleGoals = [
+const initialGoals: GoalData[] = [
   {
+    id: "1",
     title: "Complete Dissertation Chapter 3",
     description: "Finish writing and reviewing the methodology section with supporting data analysis",
     progress: 65,
     deadline: "Jan 20, 2026",
     category: "Dissertation",
-    priority: "high" as const,
+    priority: "high",
     tasks: [
       { id: "1", title: "Draft introduction section", completed: true },
       { id: "2", title: "Complete literature review", completed: true },
@@ -23,12 +37,13 @@ const sampleGoals = [
     ],
   },
   {
+    id: "2",
     title: "Submit Grant Proposal",
     description: "Prepare and submit the research grant application for the upcoming funding cycle",
     progress: 40,
     deadline: "Jan 31, 2026",
     category: "Funding",
-    priority: "high" as const,
+    priority: "high",
     tasks: [
       { id: "6", title: "Outline proposal structure", completed: true },
       { id: "7", title: "Draft budget section", completed: true },
@@ -37,12 +52,13 @@ const sampleGoals = [
     ],
   },
   {
+    id: "3",
     title: "Publish Research Paper",
     description: "Finalize and submit research paper to peer-reviewed journal",
     progress: 80,
     deadline: "Feb 15, 2026",
     category: "Publication",
-    priority: "medium" as const,
+    priority: "medium",
     tasks: [
       { id: "10", title: "Complete final draft", completed: true },
       { id: "11", title: "Address reviewer comments", completed: true },
@@ -51,12 +67,13 @@ const sampleGoals = [
     ],
   },
   {
+    id: "4",
     title: "Conference Presentation",
     description: "Prepare slides and practice for the upcoming academic conference",
     progress: 25,
     deadline: "Mar 10, 2026",
     category: "Conference",
-    priority: "low" as const,
+    priority: "low",
     tasks: [
       { id: "14", title: "Create slide deck", completed: true },
       { id: "15", title: "Add research findings", completed: false },
@@ -67,6 +84,46 @@ const sampleGoals = [
 ];
 
 const Index = () => {
+  const [goals, setGoals] = useState<GoalData[]>(initialGoals);
+  const [editingGoal, setEditingGoal] = useState<GoalData | null>(null);
+  const [deletingGoalId, setDeletingGoalId] = useState<string | null>(null);
+  const { toast } = useToast();
+
+  const handleEdit = (id: string) => {
+    const goal = goals.find(g => g.id === id);
+    if (goal) {
+      setEditingGoal(goal);
+    }
+  };
+
+  const handleSaveEdit = (updatedGoal: GoalData) => {
+    setGoals(prev => prev.map(g => g.id === updatedGoal.id ? updatedGoal : g));
+    setEditingGoal(null);
+    toast({
+      title: "Goal updated",
+      description: `"${updatedGoal.title}" has been updated successfully.`,
+    });
+  };
+
+  const handleDelete = (id: string) => {
+    setDeletingGoalId(id);
+  };
+
+  const confirmDelete = () => {
+    if (deletingGoalId) {
+      const goal = goals.find(g => g.id === deletingGoalId);
+      setGoals(prev => prev.filter(g => g.id !== deletingGoalId));
+      setDeletingGoalId(null);
+      toast({
+        title: "Goal deleted",
+        description: goal ? `"${goal.title}" has been deleted.` : "Goal has been deleted.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const highPriorityCount = goals.filter(g => g.priority === "high").length;
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -78,7 +135,7 @@ const Index = () => {
             Welcome back, Dr. Scholar
           </h1>
           <p className="text-muted-foreground">
-            You have 4 active goals and 3 tasks due this week. Let's make progress!
+            You have {goals.length} active goals and 3 tasks due this week. Let's make progress!
           </p>
         </div>
 
@@ -86,8 +143,8 @@ const Index = () => {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
           <StatsCard
             title="Active Goals"
-            value={4}
-            subtitle="2 high priority"
+            value={goals.length}
+            subtitle={`${highPriorityCount} high priority`}
             icon={Target}
             trend="neutral"
             className="animate-slide-up"
@@ -127,17 +184,21 @@ const Index = () => {
                 Your Goals
               </h2>
               <span className="text-sm text-muted-foreground">
-                4 goals • 2 high priority
+                {goals.length} goals • {highPriorityCount} high priority
               </span>
             </div>
             <div className="grid gap-4 md:grid-cols-2">
-              {sampleGoals.map((goal, index) => (
+              {goals.map((goal, index) => (
                 <div 
-                  key={goal.title} 
+                  key={goal.id} 
                   className="animate-slide-up"
                   style={{ animationDelay: `${(index + 4) * 100}ms` }}
                 >
-                  <GoalCard {...goal} />
+                  <GoalCard 
+                    {...goal} 
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                  />
                 </div>
               ))}
             </div>
@@ -155,6 +216,34 @@ const Index = () => {
           <WeeklySchedule />
         </div>
       </main>
+
+      {/* Edit Goal Dialog */}
+      {editingGoal && (
+        <EditGoalDialog
+          goal={editingGoal}
+          open={!!editingGoal}
+          onOpenChange={(open) => !open && setEditingGoal(null)}
+          onSave={handleSaveEdit}
+        />
+      )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deletingGoalId} onOpenChange={(open) => !open && setDeletingGoalId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the goal and all its associated tasks.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
