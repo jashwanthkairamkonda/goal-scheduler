@@ -1,0 +1,4 @@
+project_id = "ndvlpolaqvesmhwsixhr"
+
+[functions.parse-voice-command]
+verify_jwt = false
