@@ -207,7 +207,19 @@ const Index = () => {
           {/* Sidebar */}
           <div className="space-y-6">
             <OverallProgress />
-            <QuickActions />
+            <QuickActions onNewGoal={(goal) => {
+              const newGoal = {
+                id: crypto.randomUUID(),
+                title: goal.title,
+                description: goal.description,
+                progress: 0,
+                deadline: goal.deadline ? goal.deadline.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "No deadline",
+                category: goal.category || "Other",
+                priority: goal.priority,
+                tasks: [],
+              };
+              setGoals(prev => [...prev, newGoal]);
+            }} />
           </div>
         </div>
 
