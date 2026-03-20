@@ -33,7 +33,7 @@ type VoiceState = "idle" | "listening" | "processing";
 
 const VoiceCommandButton = ({ onGoalParsed }: VoiceCommandButtonProps) => {
   const [state, setState] = useState<VoiceState>("idle");
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
 
   const stopListening = useCallback(() => {
     recognitionRef.current?.stop();
