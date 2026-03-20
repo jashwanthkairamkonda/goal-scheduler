@@ -44,7 +44,7 @@ const VoiceCommandButton = ({ onGoalParsed }: VoiceCommandButtonProps) => {
     const SpeechRecognitionAPI =
       (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
 
-    if (!SpeechRecognition) {
+    if (!SpeechRecognitionAPI) {
       toast({
         title: "Not supported",
         description: "Voice commands aren't supported in this browser. Try Chrome or Edge.",
@@ -53,7 +53,7 @@ const VoiceCommandButton = ({ onGoalParsed }: VoiceCommandButtonProps) => {
       return;
     }
 
-    const recognition = new SpeechRecognition();
+    const recognition: SpeechRecognitionInstance = new SpeechRecognitionAPI();
     recognition.lang = "en-US";
     recognition.interimResults = false;
     recognition.maxAlternatives = 1;
