@@ -41,8 +41,8 @@ const VoiceCommandButton = ({ onGoalParsed }: VoiceCommandButtonProps) => {
   }, []);
 
   const startListening = useCallback(() => {
-    const SpeechRecognition =
-      window.SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const SpeechRecognitionAPI =
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
 
     if (!SpeechRecognition) {
       toast({
