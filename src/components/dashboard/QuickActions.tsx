@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Target, Calendar, FileText, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import NewGoalDialog, { NewGoalData } from "./NewGoalDialog";
+import VoiceCommandButton from "./VoiceCommandButton";
 import { toast } from "@/hooks/use-toast";
 
 interface QuickActionsProps {
@@ -16,6 +17,22 @@ const QuickActions = ({ onNewGoal }: QuickActionsProps) => {
     toast({
       title: "Goal Created",
       description: `"${goal.title}" has been added to your goals.`,
+    });
+  };
+
+  const handleVoiceGoal = (parsed: {
+    title: string;
+    description: string;
+    deadline: string | null;
+    category: string;
+    priority: "high" | "medium" | "low";
+  }) => {
+    onNewGoal?.({
+      title: parsed.title,
+      description: parsed.description,
+      deadline: parsed.deadline ? new Date(parsed.deadline) : undefined,
+      category: parsed.category,
+      priority: parsed.priority,
     });
   };
 
@@ -44,6 +61,7 @@ const QuickActions = ({ onNewGoal }: QuickActionsProps) => {
               <span className="text-xs">{action.label}</span>
             </Button>
           ))}
+          <VoiceCommandButton onGoalParsed={handleVoiceGoal} />
         </div>
       </div>
 
