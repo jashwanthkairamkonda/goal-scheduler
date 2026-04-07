@@ -27,11 +27,12 @@ interface VoiceCommandButtonProps {
     category: string;
     priority: "high" | "medium" | "low";
   }) => void;
+  onFocusParsed?: (data: { durationMinutes: number; goalHint?: string }) => void;
 }
 
 type VoiceState = "idle" | "listening" | "processing";
 
-const VoiceCommandButton = ({ onGoalParsed }: VoiceCommandButtonProps) => {
+const VoiceCommandButton = ({ onGoalParsed, onFocusParsed }: VoiceCommandButtonProps) => {
   const [state, setState] = useState<VoiceState>("idle");
   const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
 
@@ -74,11 +75,19 @@ const VoiceCommandButton = ({ onGoalParsed }: VoiceCommandButtonProps) => {
         if (error) throw error;
         if (data?.error) throw new Error(data.error);
 
-        onGoalParsed(data);
-        toast({
-          title: "Goal created from voice",
-          description: `"${data.title}" has been added.`,
-        });
+        if (data.action === "start_focus" && onFocusParsed) {
+          onFocusParsed({ durationMinutes: data.durationMinutes, goalHint: data.goalHint });
+          toast({
+            title: "Focus mode requested",
+            description: `Starting ${data.durationMinutes} minute focus session.`,
+          });
+        } else {
+          onGoalParsed(data);
+          toast({
+            title: "Goal created from voice",
+            description: `"${data.title}" has been added.`,
+          });
+        }
       } catch (err: any) {
         console.error("Voice parse error:", err);
         toast({
@@ -113,7 +122,7 @@ const VoiceCommandButton = ({ onGoalParsed }: VoiceCommandButtonProps) => {
 
     recognitionRef.current = recognition;
     recognition.start();
-  }, [onGoalParsed, state]);
+  }, [onGoalParsed, onFocusParsed, state]);
 
   const handleClick = () => {
     if (state === "listening") {
