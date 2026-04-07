@@ -7,6 +7,11 @@ import WeeklySchedule from "@/components/dashboard/WeeklySchedule";
 import QuickActions from "@/components/dashboard/QuickActions";
 import OverallProgress from "@/components/dashboard/OverallProgress";
 import EditGoalDialog, { GoalData } from "@/components/dashboard/EditGoalDialog";
+import StartFocusDialog from "@/components/dashboard/StartFocusDialog";
+import FocusOverlay from "@/components/dashboard/FocusOverlay";
+import FocusCompletionDialog from "@/components/dashboard/FocusCompletionDialog";
+import FocusSessionsLog from "@/components/dashboard/FocusSessionsLog";
+import { useFocusMode } from "@/hooks/useFocusMode";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -87,47 +92,66 @@ const Index = () => {
   const [goals, setGoals] = useState<GoalData[]>(initialGoals);
   const [editingGoal, setEditingGoal] = useState<GoalData | null>(null);
   const [deletingGoalId, setDeletingGoalId] = useState<string | null>(null);
+  const [isFocusDialogOpen, setIsFocusDialogOpen] = useState(false);
+  const [showCompletion, setShowCompletion] = useState(false);
   const { toast } = useToast();
+
+  const focus = useFocusMode();
 
   const handleEdit = (id: string) => {
     const goal = goals.find(g => g.id === id);
-    if (goal) {
-      setEditingGoal(goal);
-    }
+    if (goal) setEditingGoal(goal);
   };
 
   const handleSaveEdit = (updatedGoal: GoalData) => {
     setGoals(prev => prev.map(g => g.id === updatedGoal.id ? updatedGoal : g));
     setEditingGoal(null);
-    toast({
-      title: "Goal updated",
-      description: `"${updatedGoal.title}" has been updated successfully.`,
-    });
+    toast({ title: "Goal updated", description: `"${updatedGoal.title}" has been updated successfully.` });
   };
 
-  const handleDelete = (id: string) => {
-    setDeletingGoalId(id);
-  };
+  const handleDelete = (id: string) => setDeletingGoalId(id);
 
   const confirmDelete = () => {
     if (deletingGoalId) {
       const goal = goals.find(g => g.id === deletingGoalId);
       setGoals(prev => prev.filter(g => g.id !== deletingGoalId));
       setDeletingGoalId(null);
-      toast({
-        title: "Goal deleted",
-        description: goal ? `"${goal.title}" has been deleted.` : "Goal has been deleted.",
-        variant: "destructive",
-      });
+      toast({ title: "Goal deleted", description: goal ? `"${goal.title}" has been deleted.` : "Goal has been deleted.", variant: "destructive" });
     }
   };
+
+  const handleStartFocus = (goalId: string, goalTitle: string, durationMinutes: number) => {
+    focus.startFocus(goalId, goalTitle, durationMinutes);
+    toast({ title: "Focus Mode Started", description: `Focusing on "${goalTitle}" for ${durationMinutes} minutes.` });
+  };
+
+  const handleEndFocus = () => {
+    const lastGoalTitle = focus.goalTitle;
+    const elapsed = Math.round((focus.totalSeconds - focus.remainingSeconds) / 60);
+    focus.endFocus();
+    toast({ title: "Focus Mode Ended", description: `You focused on "${lastGoalTitle}" for ${elapsed} minutes.` });
+  };
+
+  // Show completion dialog when a session completes naturally
+  const lastSession = focus.sessions[focus.sessions.length - 1];
+  const showCompletionDialog = focus.justCompleted && !showCompletion;
 
   const highPriorityCount = goals.filter(g => g.priority === "high").length;
 
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      
+
+      {/* Focus Mode Overlay */}
+      {focus.isActive && (
+        <FocusOverlay
+          goalTitle={focus.goalTitle}
+          remainingSeconds={focus.remainingSeconds}
+          totalSeconds={focus.totalSeconds}
+          onEnd={handleEndFocus}
+        />
+      )}
+
       <main className="container py-8">
         {/* Welcome Section */}
         <div className="mb-8 animate-fade-in">
@@ -141,38 +165,10 @@ const Index = () => {
 
         {/* Stats Overview */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
-          <StatsCard
-            title="Active Goals"
-            value={goals.length}
-            subtitle={`${highPriorityCount} high priority`}
-            icon={Target}
-            trend="neutral"
-            className="animate-slide-up"
-          />
-          <StatsCard
-            title="Tasks Completed"
-            value={28}
-            subtitle="+8 this week"
-            icon={CheckCircle2}
-            trend="up"
-            className="animate-slide-up [animation-delay:100ms]"
-          />
-          <StatsCard
-            title="Hours Logged"
-            value="42h"
-            subtitle="Avg 6h/day"
-            icon={Clock}
-            trend="up"
-            className="animate-slide-up [animation-delay:200ms]"
-          />
-          <StatsCard
-            title="Productivity"
-            value="92%"
-            subtitle="+5% vs last week"
-            icon={TrendingUp}
-            trend="up"
-            className="animate-slide-up [animation-delay:300ms]"
-          />
+          <StatsCard title="Active Goals" value={goals.length} subtitle={`${highPriorityCount} high priority`} icon={Target} trend="neutral" className="animate-slide-up" />
+          <StatsCard title="Tasks Completed" value={28} subtitle="+8 this week" icon={CheckCircle2} trend="up" className="animate-slide-up [animation-delay:100ms]" />
+          <StatsCard title="Hours Logged" value="42h" subtitle="Avg 6h/day" icon={Clock} trend="up" className="animate-slide-up [animation-delay:200ms]" />
+          <StatsCard title="Productivity" value="92%" subtitle="+5% vs last week" icon={TrendingUp} trend="up" className="animate-slide-up [animation-delay:300ms]" />
         </div>
 
         {/* Main Content Grid */}
@@ -180,25 +176,13 @@ const Index = () => {
           {/* Goals Section */}
           <div className="lg:col-span-2 space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="font-display text-xl font-semibold text-foreground">
-                Your Goals
-              </h2>
-              <span className="text-sm text-muted-foreground">
-                {goals.length} goals • {highPriorityCount} high priority
-              </span>
+              <h2 className="font-display text-xl font-semibold text-foreground">Your Goals</h2>
+              <span className="text-sm text-muted-foreground">{goals.length} goals • {highPriorityCount} high priority</span>
             </div>
             <div className="grid gap-4 md:grid-cols-2">
               {goals.map((goal, index) => (
-                <div 
-                  key={goal.id} 
-                  className="animate-slide-up"
-                  style={{ animationDelay: `${(index + 4) * 100}ms` }}
-                >
-                  <GoalCard 
-                    {...goal} 
-                    onEdit={handleEdit}
-                    onDelete={handleDelete}
-                  />
+                <div key={goal.id} className="animate-slide-up" style={{ animationDelay: `${(index + 4) * 100}ms` }}>
+                  <GoalCard {...goal} onEdit={handleEdit} onDelete={handleDelete} />
                 </div>
               ))}
             </div>
@@ -207,19 +191,23 @@ const Index = () => {
           {/* Sidebar */}
           <div className="space-y-6">
             <OverallProgress />
-            <QuickActions onNewGoal={(goal) => {
-              const newGoal = {
-                id: crypto.randomUUID(),
-                title: goal.title,
-                description: goal.description,
-                progress: 0,
-                deadline: goal.deadline ? goal.deadline.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "No deadline",
-                category: goal.category || "Other",
-                priority: goal.priority,
-                tasks: [],
-              };
-              setGoals(prev => [...prev, newGoal]);
-            }} />
+            <QuickActions
+              onNewGoal={(goal) => {
+                const newGoal = {
+                  id: crypto.randomUUID(),
+                  title: goal.title,
+                  description: goal.description,
+                  progress: 0,
+                  deadline: goal.deadline ? goal.deadline.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "No deadline",
+                  category: goal.category || "Other",
+                  priority: goal.priority,
+                  tasks: [],
+                };
+                setGoals(prev => [...prev, newGoal]);
+              }}
+              onStartFocus={() => setIsFocusDialogOpen(true)}
+            />
+            <FocusSessionsLog sessions={focus.sessions} />
           </div>
         </div>
 
@@ -228,6 +216,24 @@ const Index = () => {
           <WeeklySchedule />
         </div>
       </main>
+
+      {/* Start Focus Dialog */}
+      <StartFocusDialog
+        open={isFocusDialogOpen}
+        onOpenChange={setIsFocusDialogOpen}
+        goals={goals.map(g => ({ id: g.id, title: g.title }))}
+        onStart={handleStartFocus}
+      />
+
+      {/* Focus Completion Dialog */}
+      {showCompletionDialog && lastSession && (
+        <FocusCompletionDialog
+          open
+          onOpenChange={() => setShowCompletion(true)}
+          goalTitle={lastSession.goalTitle}
+          durationMinutes={lastSession.durationMinutes}
+        />
+      )}
 
       {/* Edit Goal Dialog */}
       {editingGoal && (
@@ -244,15 +250,11 @@ const Index = () => {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the goal and all its associated tasks.
-            </AlertDialogDescription>
+            <AlertDialogDescription>This action cannot be undone. This will permanently delete the goal and all its associated tasks.</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Delete
-            </AlertDialogAction>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
