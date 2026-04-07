@@ -62,7 +62,10 @@ const QuickActions = ({ onNewGoal, onStartFocus }: QuickActionsProps) => {
               <span className="text-xs">{action.label}</span>
             </Button>
           ))}
-          <VoiceCommandButton onGoalParsed={handleVoiceGoal} />
+          <VoiceCommandButton
+            onGoalParsed={handleVoiceGoal}
+            onFocusParsed={(data) => onStartFocus?.()}
+          />
         </div>
       </div>
 
