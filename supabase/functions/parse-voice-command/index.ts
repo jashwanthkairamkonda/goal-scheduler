@@ -39,7 +39,7 @@ serve(async (req) => {
         messages: [
           {
             role: "system",
-            content: `You are a voice command parser for an academic goal tracker. Today's date is ${today}. Extract structured goal data from spoken commands. Always respond via the provided tool.`,
+            content: `You are a voice command parser for an academic goal tracker. Today's date is ${today}. The user may either want to create a goal or start a focus mode session. Determine intent and call the appropriate tool.`,
           },
           { role: "user", content: transcript },
         ],
@@ -74,8 +74,29 @@ serve(async (req) => {
               },
             },
           },
+          {
+            type: "function",
+            function: {
+              name: "start_focus",
+              description: "Start a focus mode timer for a specified duration. Use when user says things like 'start focus mode for 1 hour' or 'focus for 30 minutes'.",
+              parameters: {
+                type: "object",
+                properties: {
+                  durationMinutes: {
+                    type: "number",
+                    description: "Duration in minutes for the focus session",
+                  },
+                  goalHint: {
+                    type: "string",
+                    description: "Optional hint about which goal to focus on, extracted from the command",
+                  },
+                },
+                required: ["durationMinutes"],
+                additionalProperties: false,
+              },
+            },
+          },
         ],
-        tool_choice: { type: "function", function: { name: "create_goal" } },
       }),
     });
 
@@ -104,9 +125,10 @@ serve(async (req) => {
       throw new Error("No structured output returned from AI");
     }
 
-    const goalData = JSON.parse(toolCall.function.arguments);
+    const parsedData = JSON.parse(toolCall.function.arguments);
+    const actionType = toolCall.function.name;
 
-    return new Response(JSON.stringify(goalData), {
+    return new Response(JSON.stringify({ action: actionType, ...parsedData }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
