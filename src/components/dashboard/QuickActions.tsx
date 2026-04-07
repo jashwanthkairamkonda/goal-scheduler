@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Target, Calendar, FileText, Clock } from "lucide-react";
+import { Target, Calendar, FileText, Focus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import NewGoalDialog, { NewGoalData } from "./NewGoalDialog";
 import VoiceCommandButton from "./VoiceCommandButton";
@@ -7,9 +7,10 @@ import { toast } from "@/hooks/use-toast";
 
 interface QuickActionsProps {
   onNewGoal?: (goal: NewGoalData) => void;
+  onStartFocus?: () => void;
 }
 
-const QuickActions = ({ onNewGoal }: QuickActionsProps) => {
+const QuickActions = ({ onNewGoal, onStartFocus }: QuickActionsProps) => {
   const [isNewGoalOpen, setIsNewGoalOpen] = useState(false);
 
   const handleNewGoal = (goal: NewGoalData) => {
@@ -38,9 +39,9 @@ const QuickActions = ({ onNewGoal }: QuickActionsProps) => {
 
   const actions = [
     { icon: Target, label: "New Goal", variant: "accent" as const, onClick: () => setIsNewGoalOpen(true) },
-    { icon: Calendar, label: "Schedule Task", variant: "default" as const, onClick: () => {} },
+    { icon: Focus, label: "Focus Mode", variant: "default" as const, onClick: () => onStartFocus?.() },
+    { icon: Calendar, label: "Schedule Task", variant: "outline" as const, onClick: () => {} },
     { icon: FileText, label: "Add Note", variant: "outline" as const, onClick: () => {} },
-    { icon: Clock, label: "Start Timer", variant: "outline" as const, onClick: () => {} },
   ];
 
   return (
