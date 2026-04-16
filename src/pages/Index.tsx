@@ -34,8 +34,8 @@ const initialGoals: GoalData[] = [
     category: "Dissertation",
     priority: "high",
     tasks: [
-      { id: "1", title: "Draft introduction section", completed: true },
-      { id: "2", title: "Complete literature review", completed: true },
+      { id: "1", title: "Draft introduction section", completed: false },
+      { id: "2", title: "Complete literature review", completed: false },
       { id: "3", title: "Write methodology framework", completed: false },
       { id: "4", title: "Add data visualizations", completed: false },
       { id: "5", title: "Peer review and revisions", completed: false },
@@ -50,8 +50,8 @@ const initialGoals: GoalData[] = [
     category: "Funding",
     priority: "high",
     tasks: [
-      { id: "6", title: "Outline proposal structure", completed: true },
-      { id: "7", title: "Draft budget section", completed: true },
+      { id: "6", title: "Outline proposal structure", completed: false },
+      { id: "7", title: "Draft budget section", completed: false },
       { id: "8", title: "Write project narrative", completed: false },
       { id: "9", title: "Gather supporting documents", completed: false },
     ],
@@ -65,9 +65,9 @@ const initialGoals: GoalData[] = [
     category: "Publication",
     priority: "medium",
     tasks: [
-      { id: "10", title: "Complete final draft", completed: true },
-      { id: "11", title: "Address reviewer comments", completed: true },
-      { id: "12", title: "Format for journal", completed: true },
+      { id: "10", title: "Complete final draft", completed: false },
+      { id: "11", title: "Address reviewer comments", completed: false },
+      { id: "12", title: "Format for journal", completed: false },
       { id: "13", title: "Submit and track status", completed: false },
     ],
   },
@@ -80,7 +80,7 @@ const initialGoals: GoalData[] = [
     category: "Conference",
     priority: "low",
     tasks: [
-      { id: "14", title: "Create slide deck", completed: true },
+      { id: "14", title: "Create slide deck", completed: false },
       { id: "15", title: "Add research findings", completed: false },
       { id: "16", title: "Practice presentation", completed: false },
       { id: "17", title: "Prepare Q&A responses", completed: false },
