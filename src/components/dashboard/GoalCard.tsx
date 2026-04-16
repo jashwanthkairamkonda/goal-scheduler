@@ -1,4 +1,5 @@
 import { Calendar, CheckCircle2, Circle, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -27,6 +28,7 @@ interface GoalCardProps {
   priority: "high" | "medium" | "low";
   onEdit?: (id: string) => void;
   onDelete?: (id: string) => void;
+  onToggleTask?: (goalId: string, taskId: string) => void;
 }
 
 const priorityStyles = {
@@ -46,6 +48,7 @@ const GoalCard = ({
   priority,
   onEdit,
   onDelete,
+  onToggleTask,
 }: GoalCardProps) => {
   const completedTasks = tasks.filter(t => t.completed).length;
 
@@ -110,15 +113,15 @@ const GoalCard = ({
           <div className="space-y-1.5">
             {tasks.slice(0, 3).map((task) => (
               <div key={task.id} className="flex items-center gap-2 text-sm">
-                {task.completed ? (
-                  <CheckCircle2 className="h-4 w-4 text-success flex-shrink-0" />
-                ) : (
-                  <Circle className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                )}
+                <Checkbox
+                  checked={task.completed}
+                  onCheckedChange={() => onToggleTask?.(id, task.id)}
+                  className="h-4 w-4 flex-shrink-0"
+                />
                 <span className={cn(
-                  "line-clamp-1",
+                  "line-clamp-1 cursor-pointer",
                   task.completed && "text-muted-foreground line-through"
-                )}>
+                )} onClick={() => onToggleTask?.(id, task.id)}>
                   {task.title}
                 </span>
               </div>

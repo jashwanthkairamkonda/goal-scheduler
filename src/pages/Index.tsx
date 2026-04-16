@@ -111,6 +111,16 @@ const Index = () => {
 
   const handleDelete = (id: string) => setDeletingGoalId(id);
 
+  const handleToggleTask = (goalId: string, taskId: string) => {
+    setGoals(prev => prev.map(g => {
+      if (g.id !== goalId) return g;
+      const updatedTasks = g.tasks.map(t => t.id === taskId ? { ...t, completed: !t.completed } : t);
+      const completedCount = updatedTasks.filter(t => t.completed).length;
+      const progress = updatedTasks.length > 0 ? Math.round((completedCount / updatedTasks.length) * 100) : 0;
+      return { ...g, tasks: updatedTasks, progress };
+    }));
+  };
+
   const confirmDelete = () => {
     if (deletingGoalId) {
       const goal = goals.find(g => g.id === deletingGoalId);
@@ -182,7 +192,7 @@ const Index = () => {
             <div className="grid gap-4 md:grid-cols-2">
               {goals.map((goal, index) => (
                 <div key={goal.id} className="animate-slide-up" style={{ animationDelay: `${(index + 4) * 100}ms` }}>
-                  <GoalCard {...goal} onEdit={handleEdit} onDelete={handleDelete} />
+                  <GoalCard {...goal} onEdit={handleEdit} onDelete={handleDelete} onToggleTask={handleToggleTask} />
                 </div>
               ))}
             </div>
