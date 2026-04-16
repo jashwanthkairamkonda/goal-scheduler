@@ -27,6 +27,7 @@ interface GoalCardProps {
   priority: "high" | "medium" | "low";
   onEdit?: (id: string) => void;
   onDelete?: (id: string) => void;
+  onToggleTask?: (goalId: string, taskId: string) => void;
 }
 
 const priorityStyles = {
