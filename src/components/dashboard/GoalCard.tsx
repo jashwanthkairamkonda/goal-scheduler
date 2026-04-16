@@ -111,7 +111,7 @@ const GoalCard = ({
             Tasks ({completedTasks}/{tasks.length})
           </p>
           <div className="space-y-1.5">
-            {tasks.slice(0, 3).map((task) => (
+            {tasks.map((task) => (
               <div key={task.id} className="flex items-center gap-2 text-sm">
                 <Checkbox
                   checked={task.completed}
@@ -126,11 +126,6 @@ const GoalCard = ({
                 </span>
               </div>
             ))}
-            {tasks.length > 3 && (
-              <p className="text-xs text-muted-foreground pl-6">
-                +{tasks.length - 3} more tasks
-              </p>
-            )}
           </div>
         </div>
 
