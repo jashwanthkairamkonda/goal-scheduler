@@ -121,6 +121,17 @@ const Index = () => {
     }));
   };
 
+  const handleAddTask = (goalId: string, taskTitle: string) => {
+    setGoals(prev => prev.map(g => {
+      if (g.id !== goalId) return g;
+      const newTask = { id: crypto.randomUUID(), title: taskTitle, completed: false };
+      const updatedTasks = [...g.tasks, newTask];
+      const completedCount = updatedTasks.filter(t => t.completed).length;
+      const progress = updatedTasks.length > 0 ? Math.round((completedCount / updatedTasks.length) * 100) : 0;
+      return { ...g, tasks: updatedTasks, progress };
+    }));
+  };
+
   const confirmDelete = () => {
     if (deletingGoalId) {
       const goal = goals.find(g => g.id === deletingGoalId);
