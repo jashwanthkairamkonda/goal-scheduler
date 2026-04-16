@@ -1,8 +1,10 @@
-import { Calendar, CheckCircle2, Circle, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { useState } from "react";
+import { Calendar, MoreHorizontal, Pencil, Plus, Trash2 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,6 +31,7 @@ interface GoalCardProps {
   onEdit?: (id: string) => void;
   onDelete?: (id: string) => void;
   onToggleTask?: (goalId: string, taskId: string) => void;
+  onAddTask?: (goalId: string, taskTitle: string) => void;
 }
 
 const priorityStyles = {
@@ -49,8 +52,20 @@ const GoalCard = ({
   onEdit,
   onDelete,
   onToggleTask,
+  onAddTask,
 }: GoalCardProps) => {
+  const [newTaskTitle, setNewTaskTitle] = useState("");
+  const [isAdding, setIsAdding] = useState(false);
   const completedTasks = tasks.filter(t => t.completed).length;
+
+  const handleAddTask = () => {
+    const trimmed = newTaskTitle.trim();
+    if (trimmed && onAddTask) {
+      onAddTask(id, trimmed);
+      setNewTaskTitle("");
+      setIsAdding(false);
+    }
+  };
 
   return (
     <div className="group relative overflow-hidden rounded-xl border border-border bg-card p-6 shadow-card transition-all duration-300 hover:shadow-elevated animate-fade-in">
@@ -105,11 +120,24 @@ const GoalCard = ({
           <Progress value={progress} className="h-2" />
         </div>
 
-        {/* Tasks Preview */}
+        {/* Tasks */}
         <div className="space-y-2">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-            Tasks ({completedTasks}/{tasks.length})
-          </p>
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              Tasks ({completedTasks}/{tasks.length})
+            </p>
+            {!isAdding && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6"
+                onClick={() => setIsAdding(true)}
+              >
+                <Plus className="h-3.5 w-3.5" />
+                <span className="sr-only">Add task</span>
+              </Button>
+            )}
+          </div>
           <div className="space-y-1.5">
             {tasks.map((task) => (
               <div key={task.id} className="flex items-center gap-2 text-sm">
@@ -126,6 +154,22 @@ const GoalCard = ({
                 </span>
               </div>
             ))}
+            {isAdding && (
+              <div className="flex items-center gap-2">
+                <Input
+                  value={newTaskTitle}
+                  onChange={(e) => setNewTaskTitle(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleAddTask();
+                    if (e.key === "Escape") { setIsAdding(false); setNewTaskTitle(""); }
+                  }}
+                  placeholder="New task…"
+                  className="h-7 text-sm"
+                  autoFocus
+                />
+                <Button size="sm" className="h-7 px-2 text-xs" onClick={handleAddTask}>Add</Button>
+              </div>
+            )}
           </div>
         </div>
 
