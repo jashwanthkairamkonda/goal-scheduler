@@ -8,9 +8,11 @@ import { toast } from "@/hooks/use-toast";
 interface QuickActionsProps {
   onNewGoal?: (goal: NewGoalData) => void;
   onStartFocus?: () => void;
+  onScheduleTask?: () => void;
+  onAddNote?: () => void;
 }
 
-const QuickActions = ({ onNewGoal, onStartFocus }: QuickActionsProps) => {
+const QuickActions = ({ onNewGoal, onStartFocus, onScheduleTask, onAddNote }: QuickActionsProps) => {
   const [isNewGoalOpen, setIsNewGoalOpen] = useState(false);
 
   const handleNewGoal = (goal: NewGoalData) => {
@@ -40,13 +42,13 @@ const QuickActions = ({ onNewGoal, onStartFocus }: QuickActionsProps) => {
   const actions = [
     { icon: Target, label: "New Goal", variant: "accent" as const, onClick: () => setIsNewGoalOpen(true) },
     { icon: Focus, label: "Focus Mode", variant: "default" as const, onClick: () => onStartFocus?.() },
-    { icon: Calendar, label: "Schedule Task", variant: "outline" as const, onClick: () => {} },
-    { icon: FileText, label: "Add Note", variant: "outline" as const, onClick: () => {} },
+    { icon: Calendar, label: "Schedule Task", variant: "outline" as const, onClick: () => onScheduleTask?.() },
+    { icon: FileText, label: "Add Note", variant: "outline" as const, onClick: () => onAddNote?.() },
   ];
 
   return (
     <>
-      <div className="rounded-xl border border-border bg-card p-6 shadow-card">
+      <div id="actions-section" className="rounded-xl border border-border bg-card p-6 shadow-card">
         <h2 className="font-display text-lg font-semibold text-card-foreground mb-4">
           Quick Actions
         </h2>

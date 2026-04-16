@@ -2,6 +2,10 @@ import { Target, Calendar, LayoutDashboard, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const Header = () => {
+  const scrollTo = (id: string) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+  };
+
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between">
@@ -15,21 +19,21 @@ const Header = () => {
         </div>
         
         <nav className="flex items-center gap-1">
-          <Button variant="ghost" size="sm" className="gap-2">
+          <Button variant="ghost" size="sm" className="gap-2" onClick={() => scrollTo("stats-section")}>
             <LayoutDashboard className="h-4 w-4" />
             Dashboard
           </Button>
-          <Button variant="ghost" size="sm" className="gap-2">
+          <Button variant="ghost" size="sm" className="gap-2" onClick={() => scrollTo("schedule-section")}>
             <Calendar className="h-4 w-4" />
             Schedule
           </Button>
-          <Button variant="ghost" size="sm" className="gap-2">
+          <Button variant="ghost" size="sm" className="gap-2" onClick={() => scrollTo("goals-section")}>
             <Target className="h-4 w-4" />
             Goals
           </Button>
         </nav>
 
-        <Button variant="ghost" size="icon">
+        <Button variant="ghost" size="icon" onClick={() => scrollTo("actions-section")}>
           <Settings className="h-5 w-5" />
         </Button>
       </div>

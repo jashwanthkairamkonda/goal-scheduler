@@ -1,6 +1,9 @@
+import { useState } from "react";
+import { Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
-interface ScheduleEvent {
+export interface ScheduleEvent {
   id: string;
   title: string;
   time: string;
@@ -8,9 +11,10 @@ interface ScheduleEvent {
   color: "primary" | "accent" | "success" | "muted";
 }
 
-interface DaySchedule {
+export interface DaySchedule {
   day: string;
   date: number;
+  fullDate: Date;
   isToday?: boolean;
   events: ScheduleEvent[];
 }
@@ -22,85 +26,92 @@ const colorStyles = {
   muted: "bg-muted border-border text-muted-foreground",
 };
 
-const weekData: DaySchedule[] = [
-  {
-    day: "Mon",
-    date: 6,
-    events: [
-      { id: "1", title: "Literature Review", time: "9:00 AM", category: "Research", color: "primary" },
-      { id: "2", title: "Team Meeting", time: "2:00 PM", category: "Meeting", color: "accent" },
-    ],
-  },
-  {
-    day: "Tue",
-    date: 7,
-    isToday: true,
-    events: [
-      { id: "3", title: "Data Analysis", time: "10:00 AM", category: "Research", color: "primary" },
-      { id: "4", title: "Write Chapter 3", time: "3:00 PM", category: "Writing", color: "success" },
-    ],
-  },
-  {
-    day: "Wed",
-    date: 8,
-    events: [
-      { id: "5", title: "Supervisor Meeting", time: "11:00 AM", category: "Meeting", color: "accent" },
-    ],
-  },
-  {
-    day: "Thu",
-    date: 9,
-    events: [
-      { id: "6", title: "Peer Review", time: "9:00 AM", category: "Review", color: "muted" },
-      { id: "7", title: "Grant Proposal", time: "2:00 PM", category: "Writing", color: "success" },
-    ],
-  },
-  {
-    day: "Fri",
-    date: 10,
-    events: [
-      { id: "8", title: "Lab Work", time: "10:00 AM", category: "Research", color: "primary" },
-    ],
-  },
-  {
-    day: "Sat",
-    date: 11,
-    events: [],
-  },
-  {
-    day: "Sun",
-    date: 12,
-    events: [
-      { id: "9", title: "Weekly Planning", time: "6:00 PM", category: "Planning", color: "muted" },
-    ],
-  },
-];
+const categoryColorMap: Record<string, "primary" | "accent" | "success" | "muted"> = {
+  Research: "primary",
+  Writing: "success",
+  Meeting: "accent",
+  Review: "muted",
+  Planning: "muted",
+  Teaching: "accent",
+  Other: "muted",
+};
 
-const WeeklySchedule = () => {
+interface WeeklyScheduleProps {
+  extraEvents?: { id: string; title: string; date: Date; time: string; category: string }[];
+  onAddEvent?: () => void;
+}
+
+function getWeekDays(): DaySchedule[] {
+  const today = new Date();
+  const dayOfWeek = today.getDay();
+  const monday = new Date(today);
+  monday.setDate(today.getDate() - ((dayOfWeek + 6) % 7));
+
+  const days: DaySchedule[] = [];
+  const dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    days.push({
+      day: dayNames[i],
+      date: d.getDate(),
+      fullDate: new Date(d),
+      isToday: d.toDateString() === today.toDateString(),
+      events: [],
+    });
+  }
+  return days;
+}
+
+const WeeklySchedule = ({ extraEvents = [], onAddEvent }: WeeklyScheduleProps) => {
+  const weekDays = getWeekDays();
+
+  // Merge extra events into the week
+  extraEvents.forEach((ev) => {
+    const evDate = new Date(ev.date);
+    const day = weekDays.find((d) => d.fullDate.toDateString() === evDate.toDateString());
+    if (day) {
+      day.events.push({
+        id: ev.id,
+        title: ev.title,
+        time: ev.time,
+        category: ev.category,
+        color: categoryColorMap[ev.category] || "muted",
+      });
+    }
+  });
+
+  const monthName = weekDays[0].fullDate.toLocaleString("en-US", { month: "long", year: "numeric" });
+
   return (
-    <div className="rounded-xl border border-border bg-card p-6 shadow-card">
+    <div id="schedule-section" className="rounded-xl border border-border bg-card p-6 shadow-card">
       <div className="mb-6 flex items-center justify-between">
         <h2 className="font-display text-xl font-semibold text-card-foreground">
           Weekly Schedule
         </h2>
-        <span className="text-sm text-muted-foreground">January 2026</span>
+        <div className="flex items-center gap-3">
+          <span className="text-sm text-muted-foreground">{monthName}</span>
+          {onAddEvent && (
+            <Button variant="outline" size="sm" className="gap-1.5" onClick={onAddEvent}>
+              <Plus className="h-3.5 w-3.5" />
+              Add
+            </Button>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-7 gap-2">
-        {weekData.map((day) => (
+        {weekDays.map((day) => (
           <div key={day.day} className="space-y-2">
-            {/* Day Header */}
             <div className={cn(
               "text-center py-2 rounded-lg transition-colors",
               day.isToday ? "gradient-hero text-primary-foreground" : "bg-muted"
             )}>
-              <p className="text-xs font-medium uppercase tracking-wider opacity-80">
-                {day.day}
-              </p>
+              <p className="text-xs font-medium uppercase tracking-wider opacity-80">{day.day}</p>
               <p className="text-lg font-semibold">{day.date}</p>
             </div>
 
-            {/* Events */}
             <div className="space-y-1.5 min-h-[120px]">
               {day.events.map((event) => (
                 <div
