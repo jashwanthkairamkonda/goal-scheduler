@@ -203,7 +203,7 @@ const Index = () => {
             <div className="grid gap-4 md:grid-cols-2">
               {goals.map((goal, index) => (
                 <div key={goal.id} className="animate-slide-up" style={{ animationDelay: `${(index + 4) * 100}ms` }}>
-                  <GoalCard {...goal} onEdit={handleEdit} onDelete={handleDelete} onToggleTask={handleToggleTask} />
+                  <GoalCard {...goal} onEdit={handleEdit} onDelete={handleDelete} onToggleTask={handleToggleTask} onAddTask={handleAddTask} />
                 </div>
               ))}
             </div>
