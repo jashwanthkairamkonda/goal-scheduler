@@ -47,6 +47,7 @@ const GoalCard = ({
   priority,
   onEdit,
   onDelete,
+  onToggleTask,
 }: GoalCardProps) => {
   const completedTasks = tasks.filter(t => t.completed).length;
 
